@@ -3,7 +3,6 @@ import joblib
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import roc_curve, roc_auc_score, confusion_matrix
 
 st.markdown("""
     <style>
@@ -30,6 +29,10 @@ st.write("This tool predicts employee attrition risk using a machine learning mo
 model = joblib.load("clean_model.pkl")
 scaler = joblib.load("clean_scaler.pkl")
 features = joblib.load("clean_features.pkl")
+# Load real evaluation data
+fpr, tpr = joblib.load("roc_data.pkl")
+cm = joblib.load("conf_matrix.pkl")
+feature_importance = joblib.load("feature_importance.pkl")
 
 st.header("Employee Profile")
 
@@ -92,17 +95,26 @@ if st.button("Assess Attrition Risk"):
         st.success("Model Prediction: Employee Likely to Stay")
 
     st.markdown("---")
-    st.markdown("## Model Evaluation Dashboard")
+    # -------------------------------------------------
+# 📊 PROFESSIONAL MODEL EVALUATION DASHBOARD
+# -------------------------------------------------
 
-    # -----------------------------------
-    # 1️⃣ FEATURE IMPORTANCE
-    # -----------------------------------
-    st.subheader("Feature Importance")
+st.markdown("---")
+st.header("📊 Model Evaluation Dashboard")
 
-    importances = model.feature_importances_
+tab1, tab2, tab3 = st.tabs([
+    "Feature Importance",
+    "ROC Curve",
+    "Confusion Matrix"
+])
+
+# -------------------------------
+# 1️⃣ Feature Importance
+# -------------------------------
+with tab1:
     importance_df = pd.DataFrame({
         "Feature": features,
-        "Importance": importances
+        "Importance": feature_importance
     }).sort_values(by="Importance", ascending=True)
 
     fig1, ax1 = plt.subplots()
@@ -110,53 +122,29 @@ if st.button("Assess Attrition Risk"):
     ax1.set_xlabel("Importance Score")
     st.pyplot(fig1)
 
-    # -----------------------------------
-    # 2️⃣ ROC CURVE
-    # -----------------------------------
-    st.subheader("ROC Curve")
-
-    # For demo purpose, generate small synthetic ROC
-    y_true = [0, 1]
-    y_scores = [1 - probability, probability]
-
-    fpr, tpr, _ = roc_curve(y_true, y_scores)
-
+# -------------------------------
+# 2️⃣ REAL ROC Curve
+# -------------------------------
+with tab2:
     fig2, ax2 = plt.subplots()
-    ax2.plot(fpr, tpr)
-    ax2.plot([0, 1], [0, 1], linestyle="--")
+    ax2.plot(fpr, tpr, label="Random Forest")
+    ax2.plot([0,1],[0,1],'--')
     ax2.set_xlabel("False Positive Rate")
     ax2.set_ylabel("True Positive Rate")
     ax2.set_title("ROC Curve")
+    ax2.legend()
     st.pyplot(fig2)
 
-    # -----------------------------------
-    # 3️⃣ CONFUSION MATRIX (Demo Version)
-    # -----------------------------------
-    st.subheader("Confusion Matrix (Demo)")
-
-    cm = confusion_matrix([0, 1], [0, prediction])
-
+# -------------------------------
+# 3️⃣ REAL Confusion Matrix
+# -------------------------------
+with tab3:
     fig3, ax3 = plt.subplots()
     ax3.matshow(cm)
+
     for (i, j), val in np.ndenumerate(cm):
         ax3.text(j, i, f"{val}", ha='center', va='center')
 
     ax3.set_xlabel("Predicted")
     ax3.set_ylabel("Actual")
     st.pyplot(fig3)
-
-    # -----------------------------------
-    # 4️⃣ MODEL COMPARISON GRAPH
-    # -----------------------------------
-    st.subheader("Model Comparison")
-
-    comparison_df = pd.DataFrame({
-        "Model": ["Logistic Regression", "Random Forest", "XGBoost"],
-        "Accuracy": [0.75, 0.93, 0.91]
-    })
-
-    fig4, ax4 = plt.subplots()
-    ax4.bar(comparison_df["Model"], comparison_df["Accuracy"])
-    ax4.set_ylim(0, 1)
-    ax4.set_ylabel("Accuracy")
-    st.pyplot(fig4)
