@@ -84,6 +84,7 @@ model_choice = st.selectbox(
 if st.button("Assess Attrition Risk"):
 
     scaled_input = scaler.transform(input_data)
+
     if model_choice == "Random Forest":
         prediction = model.predict(scaled_input)[0]
         probability = model.predict_proba(scaled_input)[0][1]
@@ -91,11 +92,14 @@ if st.button("Assess Attrition Risk"):
         prediction = log_model.predict(scaled_input)[0]
         probability = log_model.predict_proba(scaled_input)[0][1]
 
+    # 👇 ADD HERE
+    st.write("Model Used:", model_choice)
+    st.write("Raw Probability:", probability)
+
     st.markdown("## Risk Assessment Result")
-    st.progress(float(probability))
 
     if probability < 0.3:
-        st.success(f"Low Attrition Risk ({probability:.2f})")
+        st.success(f"Low Attrition Risk ({probability:.4f})")
     elif probability < 0.6:
         st.warning(f"Moderate Attrition Risk ({probability:.2f})")
     else:
