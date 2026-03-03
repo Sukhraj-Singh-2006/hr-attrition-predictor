@@ -33,6 +33,10 @@ features = joblib.load("clean_features.pkl")
 fpr, tpr = joblib.load("roc_data.pkl")
 cm = joblib.load("conf_matrix.pkl")
 feature_importance = joblib.load("feature_importance.pkl")
+# Load Logistic Regression artifacts
+log_model = joblib.load("logistic_model.pkl")
+log_fpr, log_tpr = joblib.load("logistic_roc.pkl")
+log_cm = joblib.load("logistic_conf_matrix.pkl")
 
 st.header("Employee Profile")
 
@@ -73,11 +77,19 @@ input_data = pd.DataFrame([[
     env_sat
 ]], columns=features)
 
+model_choice = st.selectbox(
+    "Select Model",
+    ["Random Forest", "Logistic Regression"]
+)
 if st.button("Assess Attrition Risk"):
 
     scaled_input = scaler.transform(input_data)
-    prediction = model.predict(scaled_input)[0]
-    probability = model.predict_proba(scaled_input)[0][1]
+    if model_choice == "Random Forest":
+        prediction = model.predict(scaled_input)[0]
+        probability = model.predict_proba(scaled_input)[0][1]
+    else:
+        prediction = log_model.predict(scaled_input)[0]
+        probability = log_model.predict_proba(scaled_input)[0][1]
 
     st.markdown("## Risk Assessment Result")
     st.progress(float(probability))
@@ -127,12 +139,18 @@ with tab1:
 # -------------------------------
 with tab2:
     fig2, ax2 = plt.subplots()
-    ax2.plot(fpr, tpr, label="Random Forest")
-    ax2.plot([0,1],[0,1],'--')
+
+    if model_choice == "Random Forest":
+        ax2.plot(fpr, tpr, label="Random Forest")
+    else:
+        ax2.plot(log_fpr, log_tpr, label="Logistic Regression")
+
+    ax2.plot([0, 1], [0, 1], '--')
     ax2.set_xlabel("False Positive Rate")
     ax2.set_ylabel("True Positive Rate")
     ax2.set_title("ROC Curve")
     ax2.legend()
+
     st.pyplot(fig2)
 
 # -------------------------------
@@ -140,11 +158,18 @@ with tab2:
 # -------------------------------
 with tab3:
     fig3, ax3 = plt.subplots()
-    ax3.matshow(cm)
 
-    for (i, j), val in np.ndenumerate(cm):
+    if model_choice == "Random Forest":
+        display_cm = cm
+    else:
+        display_cm = log_cm
+
+    ax3.matshow(display_cm)
+
+    for (i, j), val in np.ndenumerate(display_cm):
         ax3.text(j, i, f"{val}", ha='center', va='center')
 
     ax3.set_xlabel("Predicted")
     ax3.set_ylabel("Actual")
+
     st.pyplot(fig3)
