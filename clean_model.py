@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import joblib
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, roc_auc_score, roc_curve, confusion_matrix
 
 from sklearn.preprocessing import StandardScaler, LabelEncoder
@@ -78,6 +79,53 @@ auc = roc_auc_score(y_test, y_prob)
 
 print("Accuracy:", accuracy)
 print("AUC Score:", auc)
+
+# -----------------------
+# Train Random Forest
+# -----------------------
+model = RandomForestClassifier(n_estimators=200, random_state=42)
+model.fit(X_train, y_train)
+
+# -----------------------
+# Evaluation (Random Forest)
+# -----------------------
+y_pred = model.predict(X_test)
+y_prob = model.predict_proba(X_test)[:, 1]
+
+print("Random Forest Accuracy:", accuracy_score(y_test, y_pred))
+print("Random Forest AUC:", roc_auc_score(y_test, y_prob))
+
+
+# =====================================================
+# ADD LOGISTIC REGRESSION HERE (RIGHT BELOW THIS)
+# =====================================================
+
+# -----------------------
+# Train Logistic Regression
+# -----------------------
+log_model = LogisticRegression(max_iter=2000)
+log_model.fit(X_train, y_train)
+
+# Evaluate Logistic Regression
+log_y_pred = log_model.predict(X_test)
+log_y_prob = log_model.predict_proba(X_test)[:, 1]
+
+log_accuracy = accuracy_score(y_test, log_y_pred)
+log_auc = roc_auc_score(y_test, log_y_prob)
+
+print("Logistic Regression Accuracy:", log_accuracy)
+print("Logistic Regression AUC:", log_auc)
+
+# Save Logistic Regression model
+joblib.dump(log_model, "logistic_model.pkl")
+
+# Logistic ROC
+log_fpr, log_tpr, _ = roc_curve(y_test, log_y_prob)
+joblib.dump((log_fpr, log_tpr), "logistic_roc.pkl")
+
+# Logistic Confusion Matrix
+log_cm = confusion_matrix(y_test, log_y_pred)
+joblib.dump(log_cm, "logistic_conf_matrix.pkl")
 
 # ROC Curve Data
 fpr, tpr, _ = roc_curve(y_test, y_prob)
