@@ -1,10 +1,11 @@
 # Employee Attrition Prediction Using Logistic Regression
 
 ## 📌 Project Overview
+This project focuses on predicting employee attrition using machine learning techniques, specifically Logistic Regression.
 
-This project predicts employee attrition (whether an employee will leave the company or not) using Logistic Regression.
+The system analyzes employee data to identify individuals who are likely to leave the organization, enabling HR departments to take proactive measures to improve retention.
 
-The goal is to help HR departments identify employees who are at risk of leaving and take preventive action.
+It implements a complete ML pipeline including data preprocessing, feature engineering, class imbalance handling, model training, evaluation, and model persistence for real-world usage.
 
 ---
 
